@@ -1,0 +1,5 @@
+---
+# RedHat values
+
+ssh_service: sshd
+sftp_path: /usr/libexec/openssh/sftp-server

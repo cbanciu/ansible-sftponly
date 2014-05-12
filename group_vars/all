@@ -1,0 +1,13 @@
+sftp_user:  
+sftp_home: 
+sftp_password: 
+
+sftp_group: sftponly
+
+
+sftp_lines:
+  - 'Subsystem sftp internal-sftp'
+  - '    Match Group sftponly'
+  - '    ChrootDirectory %h'
+  - '    ForceCommand internal-sftp'
+  - '    AllowTcpForwarding no'

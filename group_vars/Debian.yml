@@ -1,0 +1,5 @@
+---
+# Debian values
+
+ssh_service: ssh
+sftp_path: /usr/lib/openssh/sftp-server

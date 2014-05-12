@@ -1,0 +1,38 @@
+---
+- name: Check if sshd_config was modified
+  command: egrep -i ^Subsystem[[:space:]]*sftp[[:space:]]*internal-sftp /etc/ssh/sshd_config
+  ignore_errors: True
+  register: check_sftp
+
+- name: Configure sshd_config
+  include: sftpgroup.yml
+  when: check_sftp|failed
+  notify: restart ssh
+
+- name: Add sftponly group
+  group: name={{ sftp_group }} state=present
+
+- name: Check if home users exists
+  stat: path={{ sftp_home }}
+  register: home_check
+
+- name: Change home ownership
+  command: "{{ item }}"
+  with_items:
+    - mkdir -p {{ sftp_home }}
+    - chown root.root {{ sftp_home }}
+    - chmod 755 {{ sftp_home }}
+  when: home_check.stat.exists == false
+
+  
+- name: Create sftp user
+  user: name={{ item.0 }} createhome=no home={{ item.1 }} append=yes shell=/bin/false groups={{ sftp_group }} state=present
+  with_together: 
+    - "{{ sftp_user }}"
+    - "{{ sftp_home }}"
+
+- name: Setup | set user password
+  shell: usermod -p $(echo '{{ item.0 }}' | openssl passwd -1 -stdin) {{ item.1 }}
+  with_together:
+    - "{{ sftp_password }}"
+    - "{{ sftp_user }}"

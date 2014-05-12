@@ -1,0 +1,15 @@
+---
+- name: sftponly user 
+  hosts: all
+  user: root
+  vars_files:
+    - "group_vars/{{ ansible_os_family }}.yml"
+  # remote_user: user
+  # sudo: yes
+
+- name: Install sftponly user
+  hosts: all
+  # remote_user: user
+  # sudo: yes
+  roles:
+    - sftponly

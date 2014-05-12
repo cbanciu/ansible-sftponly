@@ -1,0 +1,16 @@
+---
+#- name: replace Subsystem lines
+#  lineinfile: dest=/etc/ssh/sshd_config regexp='^Subsystem sftp  /usr/libexec/openssh/sftp-server' backrefs=yes line="Subsystem sftp internal-sftp" backup=yes state=present
+
+#- name: replace Subsystem lines
+#  lineinfile: dest=/etc/ssh/sshd_config regexp='^Subsystem(.*)sftp(.*){{ sftp_path }}' line="#Subsystem sftp {{ sftp_path }}" backup=yes state=present backrefs=yes
+
+- name: replace Subsystem lines
+  lineinfile: dest=/etc/ssh/sshd_config regexp='^Subsystem(.*)sftp' line="#Subsystem sftp {{ sftp_path }}" backup=yes state=present backrefs=yes
+
+
+- name: Insert Subsystem line
+  lineinfile: dest=/etc/ssh/sshd_config line="{{ item }}" insertafter=EOF state=present
+  with_items: sftp_lines
+
+
