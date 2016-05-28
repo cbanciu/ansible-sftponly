@@ -1,4 +1,5 @@
 ---
+
 - name: Check if sshd_config was modified
   command: egrep -i ^Subsystem[[:space:]]*sftp[[:space:]]*internal-sftp /etc/ssh/sshd_config
   ignore_errors: True
@@ -23,16 +24,18 @@
     - chown root.root {{ sftp_home }}
     - chmod 755 {{ sftp_home }}
   when: home_check.stat.exists == false
-
   
 - name: Create sftp user
-  user: name={{ item.0 }} createhome=no home={{ item.1 }} append=yes shell=/bin/false groups={{ sftp_group }} state=present
+  user: 
+    name: "{{ item.0 }}" 
+    createhome: no 
+    home: "{{ item.1 }}"
+    append: yes 
+    shell: /bin/false 
+    groups: "{{ sftp_group }}" 
+    state: present
+    password: "{{ lookup('password', 'credentials/' + inventory_hostname + '/' + sftp_user + '/password.txt encrypt=md5_crypt length=14') }}"
   with_together: 
     - "{{ sftp_user }}"
     - "{{ sftp_home }}"
 
-- name: Setup | set user password
-  shell: usermod -p $(echo '{{ item.0 }}' | openssl passwd -1 -stdin) {{ item.1 }}
-  with_together:
-    - "{{ sftp_password }}"
-    - "{{ sftp_user }}"
