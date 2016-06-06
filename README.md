@@ -4,7 +4,7 @@
 <strong>Usage:</strong> <br />
 ansible-playbook -i inventory sftponly.yml
 
-You can also pass the variables to the command line. Eg: ansible-playbook -i hosts sftponly.yml --extra-vars "sftp_user=$USER sftp_home=$HOME sftp_password=$PASSWORD"
+You can also pass the variables to the command line. Eg: ansible-playbook -i hosts sftponly.yml --extra-vars "sftp_user=$USER real_mount=$FULL_PATH bind_mount=$HOME/sftp_user/$RELATIVE_PATH "
 
 ***
 
