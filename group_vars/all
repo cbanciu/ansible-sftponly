@@ -1,5 +1,5 @@
 sftp_user: 
-sftp_home: 
+# sftp_home: 
 
 sftp_group: sftponly
 

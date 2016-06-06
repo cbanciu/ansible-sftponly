@@ -7,10 +7,3 @@
   roles:
     - sftponly
   # sudo: yes
-
-#- name: Install sftponly user
-#  hosts: all
-#  remote_user: root
-  # sudo: yes
-#  roles:
-    - sftponly

@@ -8,21 +8,20 @@
 - name: Configure sshd_config
   include: sftpgroup.yml
   when: check_sftp|failed
-  notify: restart ssh
 
 - name: Add sftponly group
   group: name={{ sftp_group }} state=present
 
 - name: Check if home users exists
-  stat: path={{ sftp_home }}
+  stat: path="/home/"{{ sftp_user }}
   register: home_check
 
 - name: Change home ownership
   command: "{{ item }}"
   with_items:
-    - mkdir -p {{ sftp_home }}
-    - chown root.root {{ sftp_home }}
-    - chmod 755 {{ sftp_home }}
+    - mkdir -p /home/{{ sftp_user }}
+    - chown root.root /home/{{ sftp_user }}
+    - chmod 755 /home/{{ sftp_user }}
   when: home_check.stat.exists == false
   
 - name: Create sftp user
@@ -37,5 +36,15 @@
     password: "{{ lookup('password', 'credentials/' + inventory_hostname + '/' + sftp_user + '/password.txt encrypt=md5_crypt length=14') }}"
   with_together: 
     - "{{ sftp_user }}"
-    - "{{ sftp_home }}"
+    - "/home/{{ sftp_user }}"
 
+- name: Add sftp bind mount folder
+  file: path=/home/{{ sftp_user }}/{{ bind_mount }} state=directory mode=0775 owner={{ sftp_user }}
+
+- name: Bind mount the folder
+  mount:
+    src={{ real_mount }}
+    name=/home/{{ sftp_user }}/{{ bind_mount }}
+    state=mounted
+    fstype=none
+    opts=bind

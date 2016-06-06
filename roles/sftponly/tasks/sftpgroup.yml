@@ -12,5 +12,6 @@
 - name: Insert Subsystem line
   lineinfile: dest=/etc/ssh/sshd_config line="{{ item }}" insertafter=EOF state=present
   with_items: sftp_lines
+  notify: restart ssh
 
 
