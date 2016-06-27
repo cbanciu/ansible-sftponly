@@ -1,9 +1,10 @@
 ---
 - name: sftponly user 
   hosts: all
+  #become: yes
   vars_files:
     - "group_vars/{{ ansible_os_family }}.yml"
-  remote_user: root
+  remote_user: 
   roles:
     - sftponly
   # sudo: yes
