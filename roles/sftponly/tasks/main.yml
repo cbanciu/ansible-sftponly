@@ -53,4 +53,4 @@
   set_fact:
     pass_sftp: "{{ lookup('file', 'credentials/' + inventory_hostname + '/' + sftp_user + '/password.txt') }}"
 
-- debug: msg="Password for {{ sftp_user }} is {{ pass_sftp.split(' ')[0] }}"
+- debug: msg="Password for {{ sftp_user }}@{{ inventory_hostname }} is {{ pass_sftp.split(' ')[0] }}"
