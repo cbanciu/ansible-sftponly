@@ -1,2 +1,2 @@
 [all]
-#1$IP	ansible_ssh_user=root	ansible_ssh_pass=$$$
+#$IP	ansible_ssh_user=root	ansible_ssh_pass=$$$

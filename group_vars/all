@@ -1,6 +1,4 @@
-sftp_user:
-# sftp_home: 
-
+sftp_user: 
 sftp_group: sftponly
 
 sftp_lines:
@@ -10,5 +8,5 @@ sftp_lines:
   - '    ForceCommand internal-sftp'
   - '    AllowTcpForwarding no'
 
-real_mount:
+real_mount: 
 bind_mount:

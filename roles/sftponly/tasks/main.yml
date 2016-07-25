@@ -13,16 +13,16 @@
   group: name={{ sftp_group }} state=present
 
 - name: Check if home users exists
-  stat: path="/home/"{{ sftp_user }}
+  stat: path="/home/chroot/"{{ sftp_user }}
   register: home_check
 
 - name: Change home ownership
   command: "{{ item }}"
   with_items:
-    - mkdir -p /home/{{ sftp_user }}
-    - chown root.root /home/{{ sftp_user }}
-    - chmod 755 /home/{{ sftp_user }}
-  when: home_check.stat.exists == false
+    - mkdir -p /home/chroot/{{ sftp_user }}
+    - chown root.root /home/chroot/{{ sftp_user }}
+    - chmod 755 /home/chroot/{{ sftp_user }}
+  when: home_check.stat.exists == False
   
 - name: Create sftp user
   user: 
@@ -36,15 +36,15 @@
     password: "{{ lookup('password', 'credentials/' + inventory_hostname + '/' + sftp_user + '/password.txt encrypt=md5_crypt length=14') }}"
   with_together: 
     - "{{ sftp_user }}"
-    - "/home/{{ sftp_user }}"
+    - "/home/chroot/{{ sftp_user }}"
 
 - name: Add sftp bind mount folder
-  file: path=/home/{{ sftp_user }}/{{ bind_mount }} state=directory mode=0775 owner={{ sftp_user }}
+  file: path=/home/chroot/{{ sftp_user }}/{{ bind_mount }} state=directory mode=0775 owner={{ sftp_user }}
 
 - name: Bind mount the folder
   mount:
     src={{ real_mount }}
-    name=/home/{{ sftp_user }}/{{ bind_mount }}
+    name=/home/chroot/{{ sftp_user }}/{{ bind_mount }}
     state=mounted
     fstype=none
     opts=bind
