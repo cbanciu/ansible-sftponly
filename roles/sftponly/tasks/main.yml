@@ -24,7 +24,7 @@
   command: "{{ item }}"
   with_items:
     - mkdir -p /home/chroot/{{ sftp_user }}
-    - chown 755 /home/chroot
+    - chmod 755 /home/chroot
     - chown root.root /home/chroot/{{ sftp_user }}
     - chmod 755 /home/chroot/{{ sftp_user }}
   when: home_check.stat.exists == False
