@@ -2,7 +2,7 @@
 
 - name: Check if sshd_config was modified
   command: egrep -i ^Subsystem[[:space:]]*sftp[[:space:]]*internal-sftp /etc/ssh/sshd_config
-  ignore_errors: True
+  failed_when: false
   register: check_sftp
 
 - name: Configure sshd_config
@@ -12,6 +12,10 @@
 - name: Add sftponly group
   group: name={{ sftp_group }} state=present
 
+- name: Check if user exists
+  shell: getent passwd "{{ sftp_user }}" | wc -l | tr -d ''
+  register: user_exist
+
 - name: Check if home users exists
   stat: path="/home/chroot/"{{ sftp_user }}
   register: home_check
@@ -20,26 +24,33 @@
   command: "{{ item }}"
   with_items:
     - mkdir -p /home/chroot/{{ sftp_user }}
+    - chmod 755 /home/chroot
     - chown root.root /home/chroot/{{ sftp_user }}
     - chmod 755 /home/chroot/{{ sftp_user }}
   when: home_check.stat.exists == False
   
 - name: Create sftp user
   user: 
-    name: "{{ item.0 }}" 
+    name: "{{ sftp_user }}" 
     createhome: no 
-    home: "{{ item.1 }}"
+    home: "/home/chroot/{{ sftp_user }}"
     append: yes 
     shell: /bin/false 
     groups: "{{ sftp_group }}" 
     state: present
-    password: "{{ lookup('password', 'credentials/' + inventory_hostname + '/' + sftp_user + '/password.txt encrypt=md5_crypt length=14') }}"
-  with_together: 
-    - "{{ sftp_user }}"
-    - "/home/chroot/{{ sftp_user }}"
+  register: user_created
+  when: user_exist.stdout == "0"
 
+- name: Create password for "{{ sftp_user }}"
+  user:
+    name: "{{ sftp_user }}"
+    password: "{{ lookup('password', 'credentials/' + inventory_hostname + '/' + sftp_user + '/password.txt encrypt=md5_crypt length=14') }}"
+  register: password_created
+  when: user_created|changed
+  
 - name: Add sftp bind mount folder
   file: path=/home/chroot/{{ sftp_user }}/{{ bind_mount }} state=directory mode=0775 owner={{ sftp_user }}
+  when: user_created|changed
 
 - name: Bind mount the folder
   mount:
@@ -48,9 +59,18 @@
     state=mounted
     fstype=none
     opts=bind
+  when: user_created|changed
 
 - name: Save password in a variable
   set_fact:
     pass_sftp: "{{ lookup('file', 'credentials/' + inventory_hostname + '/' + sftp_user + '/password.txt') }}"
+  when: password_created|changed
 
-- debug: msg="Password for {{ sftp_user }}@{{ inventory_hostname }} is {{ pass_sftp.split(' ')[0] }}"
+- name: User Creation Results
+  debug: msg="Password for {{ sftp_user }}@{{ inventory_hostname }} is {{ pass_sftp.split(' ')[0] }}"
+  when: user_exist.stdout == "0"
+
+- name: User already exists
+  fail: msg="user {{ sftp_user }} already exists on the server, please use a different username and try again"
+  when: user_exist.stdout == "1"
+
