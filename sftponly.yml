@@ -4,6 +4,6 @@
   become: yes
   vars_files:
     - "group_vars/{{ ansible_os_family }}.yml"
-  remote_user:  
+  remote_user:
   roles:
     - sftponly

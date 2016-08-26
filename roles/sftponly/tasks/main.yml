@@ -74,3 +74,18 @@
   fail: msg="user {{ sftp_user }} already exists on the server, please use a different username and try again"
   when: user_exist.stdout == "1"
 
+- name: Write a test file
+  shell: su -s /bin/bash "{{ sftp_user }}" -c "touch /home/chroot/{{ sftp_user }}/{{ bind_mount }}/racktest.txt"
+  failed_when: False
+  register: check_write
+
+- name: Remove the test file
+  file:
+    dest=/home/chroot/{{ sftp_user }}/{{ bind_mount }}/racktest.txt
+    state=absent
+    owner={{ sftp_user }}
+  when: check_write|success
+
+- name: Cannot write
+  fail: msg="User {{ sftp_user }} cannot write to /home/chroot/{{ sftp_user }}/{{ bind_mount }}"
+  when: check_write|failed
