@@ -1,5 +1,5 @@
 ---
-- name: sftponly user 
+- name: sftponly user
   hosts: all
   become: yes
   vars_files:

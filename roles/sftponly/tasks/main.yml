@@ -9,8 +9,13 @@
   include: sftpgroup.yml
   when: check_sftp|failed
 
-- name: Add sftponly group
-  group: name={{ sftp_group }} state=present
+- name: Check sftp group
+  shell: egrep -i ^[[:space:]]*Match[[:space:]]*group[[:space:]][[:alnum:]]* /etc/ssh/sshd_config | awk '{print $NF}'
+  register: sftpgroup
+
+- name: Set sftp_group
+  set_fact:
+    sftp_group: "{{ sftpgroup.stdout }}"
 
 - name: Check if user exists
   shell: getent passwd "{{ sftp_user }}" | wc -l | tr -d ''
@@ -28,28 +33,28 @@
     - chown root.root /home/chroot/{{ sftp_user }}
     - chmod 755 /home/chroot/{{ sftp_user }}
   when: home_check.stat.exists == False
-  
+
 - name: Create sftp user
-  user: 
-    name: "{{ sftp_user }}" 
-    createhome: no 
+  user:
+    name: "{{ sftp_user }}"
+    createhome: no
     home: "/home/chroot/{{ sftp_user }}"
-    append: yes 
-    shell: /bin/false 
-    groups: "{{ sftp_group }}" 
+    append: yes
+    shell: /bin/false
+    groups: "{{ sftp_group }}"
     state: present
   register: user_created
   when: user_exist.stdout == "0"
 
-- name: Create password for "{{ sftp_user }}"
+- name: Create password for {{ sftp_user }}
   user:
     name: "{{ sftp_user }}"
     password: "{{ lookup('password', 'credentials/' + inventory_hostname + '/' + sftp_user + '/password.txt encrypt=md5_crypt length=14') }}"
   register: password_created
   when: user_created|changed
-  
+
 - name: Add sftp bind mount folder
-  file: path=/home/chroot/{{ sftp_user }}/{{ bind_mount }} state=directory mode=0775 owner={{ sftp_user }}
+  file: path=/home/chroot/{{ sftp_user }}/{{ bind_mount | default('sftp_upload', true) }} state=directory mode=0775 owner={{ sftp_user }}
   when: user_created|changed
 
 - name: Bind mount the folder
@@ -59,7 +64,9 @@
     state=mounted
     fstype=none
     opts=bind
-  when: user_created|changed
+  when:
+    - not((real_mount is undefined) or (real_mount is none) or (real_mount|trim == ''))
+    - user_created|changed
 
 - name: Save password in a variable
   set_fact:
@@ -75,7 +82,7 @@
   when: user_exist.stdout == "1"
 
 - name: Write a test file
-  shell: su -s /bin/bash "{{ sftp_user }}" -c "touch /home/chroot/{{ sftp_user }}/{{ bind_mount }}/racktest.txt"
+  shell: su -s /bin/bash "{{ sftp_user }}" -c "touch /home/chroot/{{ sftp_user }}/{{ bind_mount | default('sftp_upload', true) }}/racktest.txt"
   failed_when: False
   register: check_write
 
