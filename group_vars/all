@@ -2,11 +2,11 @@ sftp_user:
 sftp_group: sftponly
 
 sftp_lines:
-  - 'Subsystem sftp internal-sftp'
-  - '    Match Group sftponly'
-  - '    ChrootDirectory %h'
-  - '    ForceCommand internal-sftp'
-  - '    AllowTcpForwarding no'
+  - "Subsystem sftp internal-sftp"
+  - "    Match Group {{ sftp_group }}"
+  - "    ChrootDirectory %h"
+  - "    ForceCommand internal-sftp"
+  - "    AllowTcpForwarding no"
 
 real_mount:
 bind_mount:

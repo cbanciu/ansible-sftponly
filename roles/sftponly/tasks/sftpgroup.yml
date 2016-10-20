@@ -8,6 +8,8 @@
 - name: replace Subsystem lines
   lineinfile: dest=/etc/ssh/sshd_config regexp='^Subsystem(.*)sftp' line="#Subsystem sftp {{ sftp_path }}" backup=yes state=present backrefs=yes
 
+- name: Add sftponly group
+  group: name={{ sftp_group }} state=present
 
 - name: Insert Subsystem line
   lineinfile: dest=/etc/ssh/sshd_config line="{{ item }}" insertafter=EOF state=present
