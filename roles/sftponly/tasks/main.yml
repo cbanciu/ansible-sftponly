@@ -10,7 +10,7 @@
   when: check_sftp|failed
 
 - name: Check sftp group
-  shell: egrep -i ^[[:space:]]*Match[[:space:]]*group[[:space:]][[:alnum:]]* /etc/ssh/sshd_config | awk '{print $NF}'
+  shell: egrep -io ^[[:space:]]*Match[[:space:]]*group[[:space:]][[:alnum:]]* /etc/ssh/sshd_config | awk '{print $NF}'
   register: sftpgroup
 
 - name: Set sftp_group
