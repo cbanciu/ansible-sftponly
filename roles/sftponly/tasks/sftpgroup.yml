@@ -5,6 +5,14 @@
 #- name: replace Subsystem lines
 #  lineinfile: dest=/etc/ssh/sshd_config regexp='^Subsystem(.*)sftp(.*){{ sftp_path }}' line="#Subsystem sftp {{ sftp_path }}" backup=yes state=present backrefs=yes
 
+- name: Check sshd_config
+  shell: "sshd -t"
+  failed_when: false
+  register: ssh_error
+
+- fail: msg="SSH could not be restarted due to syntax error. {{ ssh_error['stderr'] }}"
+  when: ssh_error|failed
+
 - name: replace Subsystem lines
   lineinfile: dest=/etc/ssh/sshd_config regexp='^Subsystem(.*)sftp' line="#Subsystem sftp {{ sftp_path }}" backup=yes state=present backrefs=yes
 
